@@ -158,7 +158,11 @@ app.get('/new/:event', function (req, res, next) {
 
                         // Create the Base64 data blob
                         qr.toDataURL(url, (err, src) => {
-
+                            if (err) {
+                                res.status(500).send(createHTML('assets/error.html', {}));
+                                return;
+                            }
+    
                             // Return a successful response to the request:
                             res.status(200).json({
                                 "id": id,
