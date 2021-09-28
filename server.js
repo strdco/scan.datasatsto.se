@@ -126,7 +126,7 @@ app.get('/', function (req, res, next) {
 
 app.get('/new/:event', function (req, res, next) {
 
-    var id=0;
+    httpHeaders(res);
 
     // Name the connection after the host:
     connectionString.options.appName=req.headers.host;
@@ -137,29 +137,38 @@ app.get('/new/:event', function (req, res, next) {
 
             async function(recordset) {
                 if (recordset) {
-                    id=recordset[0].ID;
+                    // Fetch the new output ID from the stored procedure:
+                    var id=recordset[0].ID;
 
-                    httpHeaders(res);
-                    var url='https://'+req.headers.host+'/'+id;
-
+                    // Create the /qr directory if it doesn't already exist
                     if (!fs.existsSync(__dirname+'/qr')) { fs.mkdirSync(__dirname+'/qr'); }
 
+                    // Create the event directory if it doesn't already exist
                     var dir=__dirname+'/qr/'+decodeURI(req.params.event).toLowerCase();
                     if (!fs.existsSync(dir)) { fs.mkdirSync(dir); }
 
-                    // Create the file
-                    // TODO: This is async, so if it fails, we'll never know.
-                    qr.toFile(dir+'/'+id+'.png', url);
+                    var url='https://'+req.headers.host+'/'+id;
 
-                    // Create the Base64 data blob; return the response to the request:
-                    qr.toDataURL(url, (err, src) => {
-                        res.status(200).json({
-                            "id": id,
-                            "url": url,
-                            "imgsrc": 'https://'+req.headers.host+'/'+decodeURI(req.params.event.toLowerCase())+'/'+id+'.png',
-                            "data": src
+                    // Create the file
+                    qr.toFile(dir+'/'+id+'.png', url, (err) => {
+                        if (err) {
+                            res.status(500).send(createHTML('assets/error.html', {}));
+                            return;
+                        }
+
+                        // Create the Base64 data blob
+                        qr.toDataURL(url, (err, src) => {
+
+                            // Return a successful response to the request:
+                            res.status(200).json({
+                                "id": id,
+                                "url": url,
+                                "imgsrc": 'https://'+req.headers.host+'/'+decodeURI(req.params.event.toLowerCase())+'/'+id+'.png',
+                                "data": src
+                            });
                         });
                     });
+
 
                 } else {
                     res.status(401).send(createHTML('assets/error.html', {}));
