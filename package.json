@@ -1,0 +1,16 @@
+{
+  "name": "scan.datasatsto.se",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./server.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "fs": "*",
+    "path": "^0.12.7",
+    "qrcode": "*",
+    "tedious": "^12.2.0"
+  }
+}

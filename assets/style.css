@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
+
+body {
+    font-family: Montserrat;
+    font-weight: 700;
+    font-size: 4rem;
+}
+
+.msgbox {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+body.ok {
+    background-color: #a0ffa0;
+    color: #324147;
+}
+
+body.error {
+    background-color: #800000;
+    color: #ffffff;
+}
+
