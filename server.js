@@ -115,6 +115,7 @@ app.get('/:dir/:id.png', function (req, res, next) {
     httpHeaders(res);
 
     var options = {
+        maxAge: 24 * 60 * 60 * 1000,      // Cache the PNG for 24 hours.
         root: __dirname+'/qr/'+decodeURI(req.params.dir).toLowerCase()+'/',
         dotfiles: 'deny',
         headers: {
@@ -367,6 +368,7 @@ app.get('/assets/:asset', function (req, res, next) {
     httpHeaders(res);
 
     var options = {
+        maxAge: 60 * 60 * 1000,         // Max age 1 hour (so we can cache stylesheets, etc)
         root: __dirname + '/assets/',
         dotfiles: 'deny',
         headers: {
