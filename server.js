@@ -97,7 +97,7 @@ app.get('/', function (req, res, next) {
         }
     };
 
-    res.status(404).send(createHTML('assets/error.html', {}));
+    res.status(404).send(createHTML('assets/error.html', { "Msg": "Nothing to see here." }));
     return;
 
 });
@@ -168,14 +168,14 @@ app.get('/new/:event', function (req, res, next) {
                     // Create the file
                     qr.toFile(dir+'/'+id+'.png', url, (err) => {
                         if (err) {
-                            res.status(500).send(createHTML('assets/error.html', {}));
+                            res.status(500).send(createHTML('assets/error.html', { "Msg": "Couldn't create .png file." }));
                             return;
                         }
 
                         // Create the Base64 data blob
                         qr.toDataURL(url, (err, src) => {
                             if (err) {
-                                res.status(500).send(createHTML('assets/error.html', {}));
+                                res.status(500).send(createHTML('assets/error.html', { "Msg": "Couldn't create the data blob." }));
                                 return;
                             }
     
@@ -191,11 +191,11 @@ app.get('/new/:event', function (req, res, next) {
 
 
                 } else {
-                    res.status(401).send(createHTML('assets/error.html', {}));
+                    res.status(401).send(createHTML('assets/error.html', { "Msg": "Invalid ID." }));
                 }
             });
     } catch(err) {
-        res.status(500).send(createHTML('assets/error.html', {}));
+        res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem" }));
     }
 
 });
@@ -262,7 +262,7 @@ function newScan(req, res, next) {
                 return;
             });
     } catch(e) {
-        res.status(500).send(createHTML('assets/error.html', {}));
+        res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem." }));
         return;
     }
 
@@ -291,7 +291,7 @@ app.get('/report/:secret', function (req, res, next) {
                 return;
               });
       } catch(e) {
-          res.status(500).send(createHTML('assets/error.html', {}));
+          res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem." }));
           return;
       }
   
@@ -329,7 +329,7 @@ app.get('/expire', function (req, res, next) {
             res.status(200).send(createHTML('assets/ok.html', {}));
         });
     } catch(err) {
-        res.status(500).send(createHTML('assets/error.html', {}));
+        res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem" }));
     }
 
 });
