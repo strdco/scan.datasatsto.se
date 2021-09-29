@@ -258,9 +258,14 @@ function newScan(req, res, next) {
             [   { "name": 'ID', "type": Types.BigInt, "value": parseInt(req.params.id) },
                 { "name": 'ReferenceCode', "type": Types.VarChar, "value": referenceCode }],
 
-            async function() {
-                res.status(200).send(createHTML('assets/ok.html', {}));
-                return;
+            async function(recordset) {
+                if (recordset.length==1) {
+                    res.status(200).send(createHTML('assets/ok.html', {}));
+                    return;
+                } else {
+                    res.status(500).send(createHTML('assets/error.html', { "Msg": "That code didn't look right." }));
+                    return;
+                }
             });
     } catch(e) {
         res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem." }));
