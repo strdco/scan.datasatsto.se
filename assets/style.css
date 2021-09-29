@@ -41,6 +41,7 @@ body.setup input[type=text] {
     padding: 0.25rem 2rem 0.25rem 2rem;
     width: 30rem;
     text-align: center;
+    color: #000000;
 }
 
 input::placeholder {
@@ -53,5 +54,5 @@ body.setup input[type=submit] {
     border-color: rgb(0, 0, 0);
     background-color: rgb(255, 255, 255, 0.8);
     padding: 0.25rem 2rem 0.25rem 2rem;
-    width: 10rem;
+    color: #000000;
 }
