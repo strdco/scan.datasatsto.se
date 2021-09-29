@@ -33,7 +33,7 @@ CREATE TABLE Scan.Scans (
 GO
 
 -------------------------------------------------------------------------------
---- Create a new identity
+--- Create a new event
 -------------------------------------------------------------------------------
 
 CREATE OR ALTER PROCEDURE Scan.New_Event
@@ -104,6 +104,7 @@ AS
 SET NOCOUNT ON;
 
 INSERT INTO Scan.Scans (ID, Scanned, ReferenceCode)
+OUTPUT inserted.ID
 SELECT @ID, SYSUTCDATETIME(), @ReferenceCode
 WHERE EXISTS (SELECT ID FROM Scan.Identities WHERE ID=@ID);
 
