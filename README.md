@@ -8,25 +8,26 @@ in vendor booths. Event organizers could download a database extract from the SQ
 scans, and send that extract to each respective exhibitor.
 
 This is a framework to
-- Create QR codes as inline HTML data objects
+- Create QR codes as PNG files, as well as inline HTML data objects
 - Register when a QR code is scanned
-- Report scanned QR codes
-- Cleanse expired data
+- Associate a terminal (QR code scanner/smart phone) to a specific vendor
+- Create a report of all scanned QR codes for an event
+- Purge data for expired events
 
 ## Privacy
 
 The solution works with integer identities, so it does not contain any personally identifiable information.
 This means that you'll have to connect those IDs to your attendee records yourself.
 
-No IP addresses, locations, etc are used or checked or stored.
+No IP addresses, locations, etc, are used or checked or stored.
 
-The solution does not use passwords, with the exception of the EventSecret, which administrators need to
-extract reporting data.
+The solution does not use passwords, with the exception of the EventSecret, which the event owner will need to
+extract reporting data if they don't have database access.
 
 # Setup
 
 You'll need:
-- A web server that runs NodeJS, for example IIS or Azure WebApps.
+- A web server that runs NodeJS, for example IIS or Azure WebApps (recommended).
 - A SQL Server instance, any edition.
 
 To set up:
@@ -36,10 +37,11 @@ To set up:
   schema, so it will probably play nice with other apps if you need to.
 - Create a user to the SQL Server database. It can be a contained user (without login) if you want.
 - GRANT EXECUTE ON SCHEMA::Scan TO {database user};
-- Set up environment variables to allow the web app to connect to SQL Server.
+- Set up environment variables for the web app
 
 Environment variables:
 
+- cookieSecret: Used to encrypt cookies. Not required, but recommended.
 - dbserver: Fully qualified name of the database instance
 - dbname: Database name
 - dblogin: Login name
@@ -63,7 +65,8 @@ The stored procedure returns an "EventSecret", which acts like a password to acc
 
 `/new/{event code}`
 
-Creates a new identity for an existing event.
+Creates a new identity for an existing event. Identities are generated randomly,
+not in a sequential or otherwise predictable manner.
 
 Return value:
 ```
@@ -75,7 +78,8 @@ Return value:
 
 ## Scan a code
 
-`/{identity}[{code}]`
+`/{identity}`
+`/{identity}/{code}`
 
 Scans the identity. Code is optional, and can be added to re-use the identity
 for multiple purposes/exhibitors/etc. Remember that the QR URL only contains
@@ -84,6 +88,23 @@ the identity, not the code.
 Displays a very brief status to the user to indicate if the scan was successful.
 
 Returns HTTP/200 if successful, 500 if not.
+
+Displays an error message if there's no code, prompting the user to set up
+the terminal first.
+
+## Store a vendor code as a cookie
+
+`/setup`
+
+If the vendor/exhibitor uses a smartphone or other browser to scan the QR codes,
+the exhibitor code can be stored in a cookie in the browser. A simple web form
+found in /setup guides the user.
+
+When the cookie is set in the browser, all scans made with that browser will
+include this code. The cookie expires after 24 hours.
+
+You programmatically set the cookie by using a POST request to /setup, with
+the exhibitor code in the "code" parameter.
 
 ## Retrieve a list of scans
 
@@ -112,4 +133,61 @@ Example:
 `/expire`
 
 Evicts all events, identities and scans that have expired. By default, an event expires
-365 days after its creation.
+365 days after its creation, but this is configured in the Expires column of the Scan.Events table.
+
+# Example integration with Mailchimp
+
+(https://raw.githubusercontent.com/strdco/scan.datasatsto.se/boss/Documentation/microsoft-flow-example.png "Sample Mailchimp integration")
+
+A sample integration would `GET https://scan.example.com/new/EventCode`
+
+... which returns
+
+```
+{ "id":"19380729426",
+  "url":"https://www.example.com/19380729426",
+  "imgsrc":"https://www.example.com/eventcode/19380729426.png",
+  "data":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ..."}
+```
+
+You can parse the output as JSON with the following schema:
+```
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "url": {
+            "type": "string"
+        },
+        "imgsrc": {
+            "type": "string"
+        },
+        "data": {
+            "type": "string"
+        }
+    }
+}
+```
+
+... and then write that information back to Mailchimp.
+
+URL:
+```
+https://us5.api.mailchimp.com/3.0/lists/@{triggerOutputs()?['body/list_id']}/members/@{triggerOutputs()?['body/id']}?skip_merge_validation=true
+```
+Request body:
+```
+{
+  "merge_fields": {
+    "SCANID": "@{body('Parse_JSON')?['id']}",
+    "QR": "@{body('Parse_JSON')?['imgsrc']}"
+  }
+}
+```
+Basic authentication; use anything in the username field, and your API key in the password.
+
+# Want to contribute?
+
+Pull request welcome. My [DMs are open](https://twitter.com/dhmacher).
