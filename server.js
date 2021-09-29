@@ -8,6 +8,10 @@ const path = require('path');
 
 // Other modules:
 const express = require('express');
+const cookieSession = require('cookie-session');
+
+// HTTP port that the server will run on:
+var serverPort=process.argv[2] || process.env.PORT || 3000;
 
 // QR Code module:
 const qr = require('qrcode'); // https://www.npmjs.com/package/qrcode
@@ -17,6 +21,19 @@ const app = express();
 app.disable('etag');
 app.disable('x-powered-by');
 app.enable('trust proxy');
+
+app.use(express.json());
+app.use(express.urlencoded( { extended: true }));
+
+app.use(cookieSession({
+    name: 'session',
+    secret: (process.env.cookieSecret || 'dev'),
+    rolling: true,
+    secure: !(serverPort==3000),        // on dev environment only, allow cookies even without HTTPS.
+    sameSite: true,
+    resave: true,
+    maxAge: 24 * 60 * 60 * 1000         // 24 little hours
+}));
 
 // Tedious: used to connect to SQL Server:
 const Connection = require('tedious').Connection;
@@ -52,7 +69,6 @@ var connectionString = {
 /*-----------------------------------------------------------------------------
   Start the web server
 -----------------------------------------------------------------------------*/
-var serverPort=process.argv[2] || process.env.PORT || 3000;
 
 console.log('HTTP port:       '+serverPort);
 console.log('Database server: '+process.env.dbserver);
@@ -94,7 +110,7 @@ app.get('/', function (req, res, next) {
   Get QR code PNG file
   ---------------------------------------------------------------------------*/
 
-  app.get('/:dir/:id.png', function (req, res, next) {
+app.get('/:dir/:id.png', function (req, res, next) {
 
     httpHeaders(res);
 
@@ -190,6 +206,37 @@ app.get('/new/:event', function (req, res, next) {
 
 
 /*-----------------------------------------------------------------------------
+  Set up the scanning client:
+  ---------------------------------------------------------------------------*/
+
+app.get('/setup', function (req, res, next) {
+
+    httpHeaders(res);
+
+    // This creates/renews a session cookie, used to create/maintain the user session:
+    req.session.dummy=Date.now();        // Prevent the session from expiring.
+
+    res.status(200).send(createHTML('assets/setup.html', { "Code": (req.session.vendorCode || "") }));
+
+});
+
+app.post('/setup', function (req, res, next) {
+
+    req.session.vendorCode = req.body.code;
+    res.status(200).send(createHTML('assets/ok.html', {}));
+
+});
+
+
+
+
+
+
+
+
+
+
+/*-----------------------------------------------------------------------------
   Scan a code:
   ---------------------------------------------------------------------------*/
 
@@ -198,7 +245,8 @@ app.get('/:id([0-9]*)', newScan);
 
 function newScan(req, res, next) {
 
-    console.log(req.params);
+
+    var referenceCode=decodeURI((req.params.code || '')) || req.session.vendorCode || "";
 
     httpHeaders(res);
     try {
@@ -207,7 +255,7 @@ function newScan(req, res, next) {
 
         sqlQuery(connectionString, 'EXECUTE Scan.New_Scan @ID=@ID, @ReferenceCode=@ReferenceCode;',
             [   { "name": 'ID', "type": Types.BigInt, "value": parseInt(req.params.id) },
-                { "name": 'ReferenceCode', "type": Types.VarChar, "value": decodeURI(req.params.code) }],
+                { "name": 'ReferenceCode', "type": Types.VarChar, "value": referenceCode }],
 
             async function() {
                 res.status(200).send(createHTML('assets/ok.html', {}));
@@ -229,9 +277,7 @@ function newScan(req, res, next) {
   ---------------------------------------------------------------------------*/
 
 app.get('/report/:secret', function (req, res, next) {
-  
-      console.log(req.params);
-  
+    
       httpHeaders(res);
       try {
           // Name the connection after the host:
@@ -272,7 +318,7 @@ app.get('/expire', function (req, res, next) {
         async function(recordset) {
             if (recordset) {
                 recordset.forEach(item => {
-                    console.log('Expired ' + item.ExpiredEvent);
+                    console.log('Expired event: ' + item.ExpiredEvent);
                     var dir=__dirname+'/qr/'+item.ExpiredEvent.toLowerCase();
                     //fs.rmdirSync(dir, { recursive: true });
 
@@ -405,7 +451,7 @@ function sqlQuery(connectionString, statement, parameters, next) {
             errMsg=err;
             next();
         } else {
-            console.log('Statement succeeded: ' + rowCount + ' rows');
+            //console.log('Statement succeeded: ' + rowCount + ' rows');
         }
     }
 
@@ -414,7 +460,7 @@ function sqlQuery(connectionString, statement, parameters, next) {
     }
 
     function requestCompleted() {
-        console.log('Request completed');
+        //console.log('Request completed');
         conn.close();
         if (!errMsg) {
             next(rows);
@@ -422,11 +468,15 @@ function sqlQuery(connectionString, statement, parameters, next) {
     }
       
     function connectionEnd() {
-        console.log('Connection closed');
+        //console.log('Connection closed');
     }
 
     function connectionError(info) {
-        console.log('Msg '+info.number + ': ' + info.message);
+        if (info.number!=5701 && info.number!=5703) {
+            // 5701: Changed database context to...
+            // 5703: Changed language setting to...
+            console.log('Msg '+info.number + ': ' + info.message);
+        }
     }
 
     function connectionGeneralError(err) {

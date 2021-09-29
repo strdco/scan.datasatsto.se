@@ -6,11 +6,11 @@
     "start": "node ./server.js"
   },
   "dependencies": {
-    "body-parser": "^1.18.2",
-    "express": "^4.16.2",
+    "cookie-session": "*",
+    "express": "*",
     "fs": "*",
-    "path": "^0.12.7",
+    "path": "*",
     "qrcode": "*",
-    "tedious": "^12.2.0"
+    "tedious": "*"
   }
 }

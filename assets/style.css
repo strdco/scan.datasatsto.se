@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap');
 
-body {
+body, input {
     font-family: Montserrat;
     font-weight: 700;
     font-size: 4rem;
@@ -23,3 +23,30 @@ body.error {
     color: #ffffff;
 }
 
+body.setup {
+    background-color: #f0d080;
+    color: #000000;
+}
+
+body.setup input[type=text] {
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(0, 0, 0, 0.5);
+    background-color: rgb(255, 255, 255, 0.8);
+    padding: 0.25rem 2rem 0.25rem 2rem;
+    width: 30rem;
+    text-align: center;
+}
+
+input::placeholder {
+    color: rgb(0, 0, 0, 0.15);
+}
+
+body.setup input[type=submit] {
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255, 0.8);
+    padding: 0.25rem 2rem 0.25rem 2rem;
+    width: 10rem;
+}
