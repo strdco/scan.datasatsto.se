@@ -224,7 +224,7 @@ app.get('/setup', function (req, res, next) {
 app.post('/setup', function (req, res, next) {
 
     req.session.vendorCode = req.body.code;
-    res.status(200).send(createHTML('assets/ok.html', {}));
+    res.status(200).send(createHTML('assets/ok.html', { "Code": req.body.code }));
 
 });
 
@@ -246,8 +246,11 @@ app.get('/:id([0-9]*)', newScan);
 
 function newScan(req, res, next) {
 
-
     var referenceCode=decodeURI((req.params.code || '')) || req.session.vendorCode || "";
+    if (!referenceCode) {
+        res.status(401).send(createHTML('assets/error.html', { "Msg": "<a href=\"/setup\">Enter your exhibitor code first</a>." }));
+        return;
+    }
 
     httpHeaders(res);
     try {
@@ -260,7 +263,7 @@ function newScan(req, res, next) {
 
             async function(recordset) {
                 if (recordset.length==1) {
-                    res.status(200).send(createHTML('assets/ok.html', {}));
+                    res.status(200).send(createHTML('assets/ok.html', { "Code": (referenceCode || '(No exhibitor code)') }));
                     return;
                 } else {
                     res.status(500).send(createHTML('assets/error.html', { "Msg": "That code didn't look right." }));

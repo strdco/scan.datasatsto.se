@@ -11,6 +11,7 @@ body, input {
     display: flex;
     justify-content: center;
     align-items: center;
+    text-align: center;
 }
 
 body.ok {
@@ -20,6 +21,10 @@ body.ok {
 
 body.error {
     background-color: #800000;
+    color: #ffffff;
+}
+
+body.error a {
     color: #ffffff;
 }
 
