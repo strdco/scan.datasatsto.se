@@ -137,7 +137,7 @@ Evicts all events, identities and scans that have expired. By default, an event 
 
 # Example integration with Mailchimp
 
-(https://raw.githubusercontent.com/strdco/scan.datasatsto.se/boss/Documentation/microsoft-flow-example.png "Sample Mailchimp integration")
+![Sample Mailchimp integration](https://raw.githubusercontent.com/strdco/scan.datasatsto.se/boss/Documentation/microsoft-flow-example.png)
 
 A sample integration would `GET https://scan.example.com/new/EventCode`
 
