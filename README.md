@@ -63,7 +63,7 @@ The stored procedure returns an "EventSecret", which acts like a password to acc
 
 ## Add a new identity (attendee)
 
-`/new/{event code}`
+`GET /new/{event code}`
 
 Creates a new identity for an existing event. Identities are generated randomly,
 not in a sequential or otherwise predictable manner.
@@ -78,8 +78,8 @@ Return value:
 
 ## Scan a code
 
-`/{identity}`
-`/{identity}/{code}`
+`GET /{identity}`
+`GET /{identity}/{code}`
 
 Scans the identity. Code is optional, and can be added to re-use the identity
 for multiple purposes/exhibitors/etc. Remember that the QR URL only contains
@@ -94,7 +94,7 @@ the terminal first.
 
 ## Store a vendor code as a cookie
 
-`/setup`
+`GET /setup`
 
 If the vendor/exhibitor uses a smartphone or other browser to scan the QR codes,
 the exhibitor code can be stored in a cookie in the browser. A simple web form
@@ -108,7 +108,7 @@ the exhibitor code in the "code" parameter.
 
 ## Retrieve a list of scans
 
-`/report/{secret}`
+`GET /report/{secret}`
 
 Returns a JSON report of all identities, whether scanned or not. If the identity was
 not scanned, the "Scanned" property is blank.
@@ -130,7 +130,7 @@ Example:
 
 ## Expire
 
-`/expire`
+`GET /expire`
 
 Evicts all events, identities and scans that have expired. By default, an event expires
 365 days after its creation, but this is configured in the Expires column of the Scan.Events table.
@@ -145,8 +145,8 @@ A sample integration would `GET https://scan.example.com/new/EventCode`
 
 ```
 { "id":"19380729426",
-  "url":"https://www.example.com/19380729426",
-  "imgsrc":"https://www.example.com/eventcode/19380729426.png",
+  "url":"https://scan.example.com/19380729426",
+  "imgsrc":"https://scan.example.com/eventcode/19380729426.png",
   "data":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ..."}
 ```
 
@@ -173,6 +173,8 @@ You can parse the output as JSON with the following schema:
 
 ... and then write that information back to Mailchimp.
 
+Method: PATCH
+
 URL:
 ```
 https://us5.api.mailchimp.com/3.0/lists/@{triggerOutputs()?['body/list_id']}/members/@{triggerOutputs()?['body/id']}?skip_merge_validation=true
@@ -186,8 +188,8 @@ Request body:
   }
 }
 ```
-Basic authentication; use anything in the username field, and your API key in the password.
+Use basic authentication; anything goes in the username field, use your API key as the password.
 
 # Want to contribute?
 
-Pull request welcome. My [DMs are open](https://twitter.com/dhmacher).
+Pull request welcome. My [DMs are open](https://twitter.com/dhmacher), or create a new issue in the repo.
