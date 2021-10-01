@@ -214,8 +214,6 @@ app.get('/setup', function (req, res, next) {
 
     httpHeaders(res);
 
-    console.log(req.query);
-
     if (req.query.id) {
         sqlQuery(connectionString, 'EXECUTE Scan.Get_Codes @ID=@ID;',
         [   { "name": 'ID', "type": Types.BigInt, "value": parseInt(req.query.id) }],
