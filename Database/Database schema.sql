@@ -70,11 +70,13 @@ DECLARE @Done       bit=0,
         @Attempts   tinyint=0,
         @EventID    int=(SELECT EventID FROM Scan.Events WHERE [Event]=@Event);
 
+--- If the event does not exist, fail.
 IF (@EventID IS NULL) BEGIN;
     THROW 50001, 'Invalid event code', 1;
     RETURN;
 END;
 
+--- Try up to a hundred times to allocate a new, random identity:
 WHILE (@Done=0 AND @Attempts<100) BEGIN;
     BEGIN TRY;
         SET @ID=10000000000.+10000000000.*RAND(CHECKSUM(NEWID()));
@@ -91,9 +93,11 @@ WHILE (@Done=0 AND @Attempts<100) BEGIN;
     END CATCH;
 END;
 
+--- If we could allocate an identity, return it:
 IF (@ID IS NOT NULL)
     SELECT @ID AS ID;
 
+--- If we couldn't allocate an identity, fail:
 IF (@ID IS NULL)
     THROW 50001, 'You''re not going to believe this. But I think we ran out of identity numbers', 1;
 
@@ -110,10 +114,23 @@ AS
 
 SET NOCOUNT ON;
 
+--- Create the reference code if
+--- * the identity exists, and
+--- * the reference code doesn't already exist:
+INSERT INTO Scan.ReferenceCodes (EventID, ReferenceCode)
+SELECT EventID, @ReferenceCode
+FROM Scan.Identities
+WHERE ID=@ID
+EXCEPT
+SELECT EventID, ReferenceCode
+FROM Scan.ReferenceCodes;
+
+--- Add the user scan if the identity exists:
 INSERT INTO Scan.Scans (ID, Scanned, ReferenceCode)
 OUTPUT inserted.ID
 SELECT @ID, SYSUTCDATETIME(), @ReferenceCode
-WHERE EXISTS (SELECT ID FROM Scan.Identities WHERE ID=@ID);
+FROM Scan.Identities
+WHERE ID=@ID;
 
 GO
 
@@ -161,17 +178,26 @@ DECLARE @today date=SYSUTCDATETIME();
 
 BEGIN TRANSACTION;
 
+    --- Events -> Identities -> Scans:
     DELETE s
     FROM Scan.Events AS e
     INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
     INNER JOIN Scan.Scans AS s ON i.ID=s.ID
     WHERE e.Expires<@today;
 
+    --- Events -> Identities
     DELETE i
     FROM Scan.Events AS e
     INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
     WHERE e.Expires<@today;
 
+    --- Events -> ReferenceCodes
+    DELETE c
+    FROM Scan.Events AS e
+    INNER JOIN Scan.ReferenceCodes AS c ON e.EventID=c.EventID
+    WHERE e.Expired<@today;
+
+    --- Events
     DELETE e
     OUTPUT deleted.Event AS ExpiredEvent
     FROM Scan.Events AS e
