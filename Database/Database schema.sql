@@ -21,6 +21,13 @@ CREATE TABLE Scan.Identities (
     CONSTRAINT FK_Scan_Identities_Events FOREIGN KEY (EventID) REFERENCES Scan.Events (EventID)
 );
 GO
+-- Exhibitor codes
+CREATE TABLE Scan.ReferenceCodes (
+    EventID     int NOT NULL,
+    ReferenceCode varchar(20) NOT NULL,
+    CONSTRAINT PK_Scan_ReferenceCodes PRIMARY KEY CLUSTERED (EventID, ReferenceCode),
+    CONSTRAINT FK_Scan_ReferenceCodes_Events FOREIGN KEY (EventID) REFERENCES Scan.Events (EventID)
+);
 -- Scans
 --------
 CREATE TABLE Scan.Scans (
@@ -107,6 +114,22 @@ INSERT INTO Scan.Scans (ID, Scanned, ReferenceCode)
 OUTPUT inserted.ID
 SELECT @ID, SYSUTCDATETIME(), @ReferenceCode
 WHERE EXISTS (SELECT ID FROM Scan.Identities WHERE ID=@ID);
+
+GO
+
+-------------------------------------------------------------------------------
+--- Get a list of exhibitor codes for an identity. Used by /setup?id=...
+-------------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE Scan.Get_Codes
+    @ID             bigint
+AS
+
+SELECT c.ReferenceCode
+FROM Scan.Identities AS i
+INNER JOIN Scan.ReferenceCodes AS c ON i.EventID=c.EventID
+WHERE i.ID=@ID
+ORDER BY c.ReferenceCode;
 
 GO
 

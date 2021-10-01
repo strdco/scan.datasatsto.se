@@ -214,10 +214,29 @@ app.get('/setup', function (req, res, next) {
 
     httpHeaders(res);
 
-    // This creates/renews a session cookie, used to create/maintain the user session:
-    req.session.dummy=Date.now();        // Prevent the session from expiring.
+    console.log(req.query);
 
-    res.status(200).send(createHTML('assets/setup.html', { "Code": (req.session.vendorCode || "") }));
+    if (req.query.id) {
+        sqlQuery(connectionString, 'EXECUTE Scan.Get_Codes @ID=@ID;',
+        [   { "name": 'ID', "type": Types.BigInt, "value": parseInt(req.query.id) }],
+
+        async function(recordset) {
+            var codes='';
+            recordset.forEach(item => {
+                codes+='<a href="/'+parseInt(req.query.id)+'/'+encodeURIComponent(item.ReferenceCode)+'">'+simpleHtmlEncode(item.ReferenceCode)+'</a>';
+            });
+            
+
+            res.status(200).send(createHTML('assets/select-code.html', { "codes": codes }));
+            return;
+        });
+    } else {
+        // This creates/renews a session cookie, used to create/maintain the user session:
+        req.session.dummy=Date.now();        // Prevent the session from expiring.
+
+        res.status(200).send(createHTML('assets/setup.html', { "Code": (req.session.vendorCode || "") }));
+    }
+
 
 });
 
@@ -248,7 +267,7 @@ function newScan(req, res, next) {
 
     var referenceCode=decodeURI((req.params.code || '')) || req.session.vendorCode || "";
     if (!referenceCode) {
-        res.status(401).send(createHTML('assets/error.html', { "Msg": "<a href=\"/setup\">Enter your exhibitor code first</a>." }));
+        res.redirect('/setup?id='+parseInt(req.params.id));
         return;
     }
 
@@ -496,6 +515,15 @@ function sqlQuery(connectionString, statement, parameters, next) {
 
 }
 
+
+
+function simpleHtmlEncode(plaintext) {
+    var html=plaintext;
+    html=html.replace('&', '&amp;');
+    html=html.replace('<', '&lt;');
+    html=html.replace('>', '&gt;');
+    return(html);
+}
 
 
 /*-----------------------------------------------------------------------------

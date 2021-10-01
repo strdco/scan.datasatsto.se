@@ -1,16 +1,16 @@
 # scan.datasatsto.se
 A QR code scanning and reporting API for SQL/Data Saturday conferences
 
-# What is it
+# What is it?
 
 Back in the day when we used to have SQL Saturdays, attendees would have QR codes that they could scan
-in vendor booths. Event organizers could download a database extract from the SQL Saturday site with all
+in exhibitor booths. Event organizers could download a database extract from the SQL Saturday site with all
 scans, and send that extract to each respective exhibitor.
 
 This is a framework to
 - Create QR codes as PNG files, as well as inline HTML data objects
 - Register when a QR code is scanned
-- Associate a terminal (QR code scanner/smart phone) to a specific vendor
+- Associate a terminal (QR code scanner/smart phone) to a specific exhibitor
 - Create a report of all scanned QR codes for an event
 - Purge data for expired events
 
@@ -50,6 +50,26 @@ Environment variables:
 **Note** The app currently only supports SQL Authentication.
 
 # API Reference
+
+Here's how the scanning flow works.
+
+![Sample Mailchimp integration](https://raw.githubusercontent.com/strdco/scan.datasatsto.se/boss/Documentation/scanning-flow.png)
+
+### With cookie-enabled terminal (normal workflow):
+
+* An exhibitor will first go to `/setup` to create and store an exhibitor code. This code is stored as a cookie
+  on the browser, so the process needs to be completed for each terminal.
+* When the exhibitor scans a QR code, the browser will load the `/123456789`. The cookie on the browser identifies
+  which exhibitor code to associate the scan with.
+
+### Without cookies:
+
+The embedded browser in iOS (including the QR code scanning app) does not store cookies persistently across sessions,
+and it does not inherit persistent cookies from Safari, so this alternate workflow is required:
+
+* The exhibitor scans the QR code, which loads `/123456789`.
+* Because the web server does not detect a cookie, it will present the user with a list of codes.
+* When the user clicks one of the codes, the browser loads `/123456789/exhibitorcode`, which completes the scan.
 
 ## Add a new event
 
@@ -92,11 +112,11 @@ Returns HTTP/200 if successful, 500 if not.
 Displays an error message if there's no code, prompting the user to set up
 the terminal first.
 
-## Store a vendor code as a cookie
+## Store a exhibitor code as a cookie
 
 `GET /setup`
 
-If the vendor/exhibitor uses a smartphone or other browser to scan the QR codes,
+If the exhibitor uses a smartphone or other browser to scan the QR codes,
 the exhibitor code can be stored in a cookie in the browser. A simple web form
 found in /setup guides the user.
 
@@ -121,10 +141,10 @@ Example:
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:08.743Z","Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:17.322Z","Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:43.244Z","Code":null},
- {"ID":"17560301726","Scanned":"2021-09-27T18:15:34.198Z","Code":"Vendor 1"},
+ {"ID":"17560301726","Scanned":"2021-09-27T18:15:34.198Z","Code":"Exhibitor 1"},
  {"ID":"17560301726","Scanned":"2021-09-27T18:15:39.511Z","Code":null},
- {"ID":"17560301726","Scanned":"2021-09-27T18:17:13.824Z","Code":"Vendor 2"},
- {"ID":"17560301726","Scanned":"2021-09-27T18:18:36.513Z","Code":"Vendor 2"},
+ {"ID":"17560301726","Scanned":"2021-09-27T18:17:13.824Z","Code":"Exhibitor 2"},
+ {"ID":"17560301726","Scanned":"2021-09-27T18:18:36.513Z","Code":"Exhibitor 2"},
  {"ID":"17560301726","Scanned":"2021-09-27T18:18:42.966Z","Code":"Lunch ticket"}]
 ```
 
