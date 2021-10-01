@@ -99,6 +99,7 @@ Return value:
 ## Scan a code
 
 `GET /{identity}`
+
 `GET /{identity}/{code}`
 
 Scans the identity. Code is optional, and can be added to re-use the identity
