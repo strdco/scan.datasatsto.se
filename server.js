@@ -223,7 +223,11 @@ app.get('/setup', function (req, res, next) {
             recordset.forEach(item => {
                 codes+='<a href="/'+parseInt(req.query.id)+'/'+encodeURIComponent(item.ReferenceCode)+'">'+simpleHtmlEncode(item.ReferenceCode)+'</a>';
             });
-            
+
+            if (!codes) {
+                res.status(500).send(createHTML('assets/error.html', { "Msg": "That code didn't look right." }));
+                return;
+            }
 
             res.status(200).send(createHTML('assets/select-code.html', { "codes": codes }));
             return;
