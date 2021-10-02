@@ -263,7 +263,7 @@ app.get('/:id([0-9]*)', newScan);
 
 function newScan(req, res, next) {
 
-    var referenceCode=decodeURI((req.params.code || '')) || req.session.vendorCode || "";
+    var referenceCode=decodeURI(req.params.code || '') || req.session.vendorCode || "";
     if (!referenceCode) {
         res.redirect('/setup?id='+parseInt(req.params.id));
         return;
@@ -280,6 +280,9 @@ function newScan(req, res, next) {
 
             async function(recordset) {
                 if (recordset.length==1) {
+                    // Set the exhibitor code to the one we're using now:
+                    req.params.code = referenceCode;
+
                     res.status(200).send(createHTML('assets/ok.html', { "Code": (referenceCode || '(No exhibitor code)') }));
                     return;
                 } else {
