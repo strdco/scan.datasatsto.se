@@ -285,7 +285,7 @@ function newScan(req, res, next) {
             async function(recordset) {
                 if (recordset.length==1) {
                     // Set the exhibitor code to the one we're using now:
-                    req.params.code = referenceCode;
+                    req.session.vendorCode = referenceCode;
 
                     res.status(200).send(createHTML('assets/ok.html', { "Code": (referenceCode || '(No exhibitor code)') }));
                     return;
