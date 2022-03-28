@@ -335,6 +335,36 @@ app.get('/report/:secret', function (req, res, next) {
   
   
 /*-----------------------------------------------------------------------------
+  View one random scan:
+  ---------------------------------------------------------------------------*/
+
+  app.get('/random/:code/:secret', function (req, res, next) {
+    
+    httpHeaders(res);
+    try {
+        // Name the connection after the host:
+        connectionString.options.appName=req.headers.host;
+
+        sqlQuery(connectionString, 'EXECUTE Scan.Get_Random @ReferenceCode=@ReferenceCode, @EventSecret=@EventSecret;',
+            [   { "name": 'EventSecret', "type": Types.UniqueIdentifier, "value": decodeURI(req.params.secret) },
+                { "name": 'ReferenceCode', "type": Types.NVarChar, "value": decodeURI(req.params.code) }],
+
+            async function(recordset) {
+              res.status(200).json(recordset);
+              return;
+            });
+    } catch(e) {
+        res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem." }));
+        return;
+    }
+
+});
+
+
+
+
+
+/*-----------------------------------------------------------------------------
   Expire/evict old events from the database:
   ---------------------------------------------------------------------------*/
 

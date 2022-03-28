@@ -168,6 +168,25 @@ ORDER BY s.Scanned;
 GO
 
 -------------------------------------------------------------------------------
+--- Fetch a random scans for an event
+-------------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE Scan.Get_Random
+    @EventSecret        uniqueidentifier,
+    @ReferenceCode      varchar(20)
+AS
+
+SELECT TOP (1) i.ID, s.Scanned, s.ReferenceCode AS Code
+FROM Scan.Events AS e
+INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
+LEFT JOIN Scan.Scans AS s ON i.ID=s.ID
+WHERE e.EventSecret=@EventSecret
+  AND s.ReferenceCode=@ReferenceCode
+ORDER BY NEWID();
+
+GO
+
+-------------------------------------------------------------------------------
 --- Evict old identities and scans
 -------------------------------------------------------------------------------
 
