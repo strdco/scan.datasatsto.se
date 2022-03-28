@@ -179,9 +179,9 @@ AS
 SELECT TOP (1) i.ID, s.Scanned, s.ReferenceCode AS Code
 FROM Scan.Events AS e
 INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
-LEFT JOIN Scan.Scans AS s ON i.ID=s.ID
+INNER JOIN Scan.Scans AS s ON i.ID=s.ID
 WHERE e.EventSecret=@EventSecret
-  AND (s.ReferenceCode=@ReferenceCode OR @ReferenceCode IS NULL)
+  AND (s.ReferenceCode=@ReferenceCode OR NULLIF(@ReferenceCode, '') IS NULL)
 ORDER BY NEWID();
 
 GO

@@ -344,7 +344,7 @@ app.get('/random/:secret', randomScan);
 function randomScan (req, res, next) {
 
     // If we passed a vendor code, use that, otherwise, set referenceCode=null (any/no vendor)
-    var referenceCode=decodeURI(req.params.code) || null;
+    var referenceCode=decodeURI(req.params.code || '');
 
     httpHeaders(res);
     try {
