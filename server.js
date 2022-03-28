@@ -338,8 +338,14 @@ app.get('/report/:secret', function (req, res, next) {
   View one random scan:
   ---------------------------------------------------------------------------*/
 
-  app.get('/random/:code/:secret', function (req, res, next) {
-    
+app.get('/random/:secret/:code', randomScan);
+app.get('/random/:secret', randomScan);
+
+function randomScan (req, res, next) {
+
+    // If we passed a vendor code, use that, otherwise, set referenceCode=null (any/no vendor)
+    var referenceCode=decodeURI(req.params.code) || null;
+
     httpHeaders(res);
     try {
         // Name the connection after the host:
@@ -347,7 +353,7 @@ app.get('/report/:secret', function (req, res, next) {
 
         sqlQuery(connectionString, 'EXECUTE Scan.Get_Random @ReferenceCode=@ReferenceCode, @EventSecret=@EventSecret;',
             [   { "name": 'EventSecret', "type": Types.UniqueIdentifier, "value": decodeURI(req.params.secret) },
-                { "name": 'ReferenceCode', "type": Types.NVarChar, "value": decodeURI(req.params.code) }],
+                { "name": 'ReferenceCode', "type": Types.NVarChar, "value": referenceCode }],
 
             async function(recordset) {
               res.status(200).json(recordset);
@@ -358,7 +364,7 @@ app.get('/report/:secret', function (req, res, next) {
         return;
     }
 
-});
+}
 
 
 

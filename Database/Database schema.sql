@@ -181,7 +181,7 @@ FROM Scan.Events AS e
 INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
 LEFT JOIN Scan.Scans AS s ON i.ID=s.ID
 WHERE e.EventSecret=@EventSecret
-  AND s.ReferenceCode=@ReferenceCode
+  AND (s.ReferenceCode=@ReferenceCode OR @ReferenceCode IS NULL)
 ORDER BY NEWID();
 
 GO
