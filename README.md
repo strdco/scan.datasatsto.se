@@ -149,6 +149,14 @@ Example:
  {"ID":"17560301726","Scanned":"2021-09-27T18:18:42.966Z","Code":"Lunch ticket"}]
 ```
 
+## View one random scan
+
+`GET /random/{secret}/{code}`
+`GET /random/{secret}`
+
+Returns a single, random scan. If the vendor code is specified, the scan is chosen only
+from that vendor's scans.
+
 ## Expire
 
 `GET /expire`
