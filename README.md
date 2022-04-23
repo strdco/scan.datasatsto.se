@@ -152,6 +152,7 @@ Example:
 ## View one random scan
 
 `GET /random/{secret}/{code}`
+
 `GET /random/{secret}`
 
 Returns a single, random scan. If the vendor code is specified, the scan is chosen only
