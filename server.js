@@ -264,6 +264,7 @@ app.post('/setup', function (req, res, next) {
 
 app.get('/:id([0-9]*)/:code', newScan);
 app.get('/:id([0-9]*)', newScan);
+app.get('/:event/:id([0-9]*)', newScan);
 
 function newScan(req, res, next) {
 
