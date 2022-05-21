@@ -339,8 +339,8 @@ app.get('/report/:secret', function (req, res, next) {
   View one random scan:
   ---------------------------------------------------------------------------*/
 
-app.get('/random/:secret/:code', randomScan);
-app.get('/random/:secret', randomScan);
+app.post('/random/:secret/:code', randomScan);
+app.post('/random/:secret', randomScan);
 
 function randomScan (req, res, next) {
 
