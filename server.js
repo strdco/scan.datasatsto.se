@@ -264,7 +264,6 @@ app.post('/setup', function (req, res, next) {
 
 app.get('/:id([0-9]*)/:code', newScan);
 app.get('/:id([0-9]*)', newScan);
-app.get('/:event/:id([0-9]*)', newScan);
 
 function newScan(req, res, next) {
 
@@ -339,8 +338,8 @@ app.get('/report/:secret', function (req, res, next) {
   View one random scan:
   ---------------------------------------------------------------------------*/
 
-app.post('/random/:secret/:code', randomScan);
-app.post('/random/:secret', randomScan);
+app.get('/random/:secret/:code', randomScan);
+app.get('/random/:secret', randomScan);
 
 function randomScan (req, res, next) {
 
