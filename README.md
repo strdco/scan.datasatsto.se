@@ -85,8 +85,12 @@ The stored procedure returns an "EventSecret", which acts like a password to acc
 
 `GET /new/{event code}`
 
-Creates a new identity for an existing event. Identities are generated randomly,
-not in a sequential or otherwise predictable manner.
+`GET /new/{event code}/{manual integer id}`
+
+Creates a new identity for an existing event. Identities are normally generated randomly,
+not in a sequential or otherwise predictable manner, but you can opt to set an ID manually.
+This could be useful if you want to integrate with another system and want to inherit the
+ID from that data source.
 
 Return value:
 ```

@@ -60,13 +60,13 @@ GO
 -------------------------------------------------------------------------------
 
 CREATE OR ALTER PROCEDURE Scan.New_Identity
-    @Event      varchar(50)
+    @Event      varchar(50),
+    @ID         bigint=NULL
 AS
 
 SET NOCOUNT ON;
 
 DECLARE @Done       bit=0,
-        @ID         bigint,
         @Attempts   tinyint=0,
         @EventID    int=(SELECT EventID FROM Scan.Events WHERE [Event]=@Event);
 
@@ -76,21 +76,28 @@ IF (@EventID IS NULL) BEGIN;
     RETURN;
 END;
 
---- Try up to a hundred times to allocate a new, random identity:
-WHILE (@Done=0 AND @Attempts<100) BEGIN;
-    BEGIN TRY;
-        SET @ID=10000000000.+10000000000.*RAND(CHECKSUM(NEWID()));
-        SET @Attempts=@Attempts+1;
+--- If the request specified an ID, use that:
+IF (@ID IS NOT NULL)
+    INSERT INTO Scan.Identities (ID, EventID, Created)
+    VALUES (@ID, @EventID, SYSUTCDATETIME());
 
-        INSERT INTO Scan.Identities (ID, EventID, Created)
-        VALUES (@ID, @EventID, SYSUTCDATETIME());
+IF (@ID IS NULL) BEGIN;
+    --- Try up to a hundred times to allocate a new, random identity:
+    WHILE (@Done=0 AND @Attempts<100) BEGIN;
+        BEGIN TRY;
+            SET @ID=10000000000.+10000000000.*RAND(CHECKSUM(NEWID()));
+            SET @Attempts=@Attempts+1;
 
-        SET @Done=1;
-    END TRY
-    BEGIN CATCH;
-        SET @ID=NULL; 
-        SET @Done=0;
-    END CATCH;
+            INSERT INTO Scan.Identities (ID, EventID, Created)
+            VALUES (@ID, @EventID, SYSUTCDATETIME());
+
+            SET @Done=1;
+        END TRY
+        BEGIN CATCH;
+            SET @ID=NULL; 
+            SET @Done=0;
+        END CATCH;
+    END;
 END;
 
 --- If we could allocate an identity, return it:

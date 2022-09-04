@@ -141,16 +141,25 @@ app.get('/:dir/:id.png', function (req, res, next) {
   Generate a new QR code:
   ---------------------------------------------------------------------------*/
 
-app.get('/new/:event', function (req, res, next) {
+  app.get('/new/:event', newRegistration);      // Generate an ID (default)
+  app.get('/new/:event/:id', newRegistration);  // Use an existing ID (suitable for simplifying integrations)
 
+function newRegistration (req, res, next) {
     httpHeaders(res);
 
     // Name the connection after the host:
     connectionString.options.appName=req.headers.host;
+    
+    // Check if caller provided a specific ID to be used.
+    var manualRegistrationId=null;
+    if (req.params.id!='' &!isNaN(req.params.id)) {
+        manualRegistrationId = req.params.id;
+    }
 
     try {
-        sqlQuery(connectionString, 'EXECUTE Scan.New_Identity @Event=@Event;',
-        [{ "name": 'Event', "type": Types.VarChar, "value": decodeURI(req.params.event) }],
+        sqlQuery(connectionString, 'EXECUTE Scan.New_Identity @Event=@Event, @ID=@ID;',
+        [{ "name": 'Event', "type": Types.VarChar, "value": decodeURI(req.params.event) },
+         { "name": 'ID',    "type": Types.BigInt,  "value": manualRegistrationId        }],
 
             async function(recordset) {
                 if (recordset) {
@@ -199,7 +208,7 @@ app.get('/new/:event', function (req, res, next) {
         res.status(500).send(createHTML('assets/error.html', { "Msg": "There was a problem" }));
     }
 
-});
+}
 
 
 
