@@ -224,7 +224,7 @@ BEGIN TRANSACTION;
     DELETE c
     FROM Scan.Events AS e
     INNER JOIN Scan.ReferenceCodes AS c ON e.EventID=c.EventID
-    WHERE e.Expired<@today;
+    WHERE e.Expires<@today;
 
     --- Events
     DELETE e
