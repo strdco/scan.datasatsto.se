@@ -230,7 +230,7 @@ app.get('/setup', function (req, res, next) {
         async function(recordset) {
             var codes='';
             recordset.forEach(item => {
-                codes+='<a href="/'+parseInt(req.query.id)+'/'+encodeURIComponent(item.ReferenceCode)+'">'+simpleHtmlEncode(item.ReferenceCode)+'</a>';
+                codes+='<span class="code" xhref="/'+parseInt(req.query.id)+'/'+encodeURIComponent(item.ReferenceCode)+'">'+simpleHtmlEncode(item.ReferenceCode)+'</span>';
             });
 
             if (!codes) {

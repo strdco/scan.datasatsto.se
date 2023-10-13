@@ -19,7 +19,8 @@ This is a framework to
 The solution works with integer identities, so it does not contain any personally identifiable information.
 This means that you'll have to connect those IDs to your attendee records yourself.
 
-No IP addresses, locations, etc, are used or checked or stored.
+No IP addresses, locations, etc, are used or checked or stored, unless specifically entered in the note
+field by vendors.
 
 The solution does not use passwords, with the exception of the EventSecret, which the event owner will need to
 extract reporting data if they don't have database access.
@@ -106,6 +107,8 @@ Return value:
 
 `GET /{identity}/{code}`
 
+`POST /{identity}/{code}` with `note` parameter
+
 Scans the identity. Code is optional, and can be added to re-use the identity
 for multiple purposes/exhibitors/etc. Remember that the QR URL only contains
 the identity, not the code.
@@ -114,8 +117,11 @@ Displays a very brief status to the user to indicate if the scan was successful.
 
 Returns HTTP/200 if successful, 500 if not.
 
-Displays an error message if there's no code, prompting the user to set up
+Displays an error message if there's no cached code, prompting the user to set up
 the terminal first.
+
+For POST requests, the "note" parameter is saved as a plaintext description in
+the "Note" column of the scans table.
 
 ## Store a exhibitor code as a cookie
 
@@ -146,7 +152,7 @@ Example:
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:08.743Z","Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:17.322Z","Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:13:43.244Z","Code":null},
- {"ID":"17560301726","Scanned":"2021-09-27T18:15:34.198Z","Code":"Exhibitor 1"},
+ {"ID":"17560301726","Scanned":"2021-09-27T18:15:34.198Z","Code":"Exhibitor 1","Note":"Spoke about cloud monitoring."},
  {"ID":"17560301726","Scanned":"2021-09-27T18:15:39.511Z","Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:17:13.824Z","Code":"Exhibitor 2"},
  {"ID":"17560301726","Scanned":"2021-09-27T18:18:36.513Z","Code":"Exhibitor 2"},

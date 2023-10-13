@@ -33,6 +33,11 @@ body.setup {
     color: #000000;
 }
 
+::placeholder,
+::-ms-input-placeholder {
+    opacity: 0.5;
+}
+
 body.setup input[type=text] {
     border-style: solid;
     border-width: 1px;
@@ -40,11 +45,13 @@ body.setup input[type=text] {
     background-color: rgb(255, 255, 255, 0.8);
     padding: 0.25rem 2rem 0.25rem 2rem;
     width: 30rem;
+    max-width: calc(100% - 4rem);
     text-align: center;
     color: #000000;
+
 }
 
-body.setup a {
+body.setup span.code {
     display: block;
     border-style: solid;
     border-width: 0.25rem;
@@ -54,11 +61,16 @@ body.setup a {
     margin: 1rem;
     text-decoration: none;
     color: #000000;
-}
 
-body.setup a:active,
-body.setup a:hover,
-body.setup a:focus {
+    /* Prevent text selection on long-click: */
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+body.setup span.code:active,
+body.setup span.code:hover,
+body.setup span.code:focus {
     background-color: rgb(255, 255, 255, 0.25);
 }
 
