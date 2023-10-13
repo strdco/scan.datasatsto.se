@@ -34,6 +34,7 @@ CREATE TABLE Scan.Scans (
     ID          bigint NOT NULL,
     Scanned     datetime2(3) NOT NULL,
     ReferenceCode varchar(20) NULL,
+    Note        nvarchar(max) NULL,
     CONSTRAINT PK_Scan_Scans PRIMARY KEY CLUSTERED (Id, Scanned),
     CONSTRAINT FK_Scan_Scans_Identities FOREIGN KEY (ID) REFERENCES Scan.Identities (ID)
 );
@@ -116,7 +117,8 @@ GO
 
 CREATE OR ALTER PROCEDURE Scan.New_Scan
     @ID             bigint,
-    @ReferenceCode  varchar(20)=NULL
+    @ReferenceCode  varchar(20)=NULL,
+    @Note           nvarchar(max)=NULL
 AS
 
 SET NOCOUNT ON;
@@ -133,9 +135,9 @@ SELECT EventID, ReferenceCode
 FROM Scan.ReferenceCodes;
 
 --- Add the user scan if the identity exists:
-INSERT INTO Scan.Scans (ID, Scanned, ReferenceCode)
+INSERT INTO Scan.Scans (ID, Scanned, ReferenceCode, Note)
 OUTPUT inserted.ID
-SELECT @ID, SYSUTCDATETIME(), @ReferenceCode
+SELECT @ID, SYSUTCDATETIME(), @ReferenceCode, @Note
 FROM Scan.Identities
 WHERE ID=@ID;
 
@@ -165,7 +167,7 @@ CREATE OR ALTER PROCEDURE Scan.Get_Scans
     @EventSecret        uniqueidentifier
 AS
 
-SELECT i.ID, s.Scanned, s.ReferenceCode AS Code
+SELECT i.ID, s.Scanned, s.ReferenceCode AS Code, s.Note
 FROM Scan.Events AS e
 INNER JOIN Scan.Identities AS i ON e.EventID=i.EventID
 LEFT JOIN Scan.Scans AS s ON i.ID=s.ID
