@@ -271,6 +271,7 @@ app.post('/setup', function (req, res, next) {
   Scan a code:
   ---------------------------------------------------------------------------*/
 
+app.post('/:id([0-9]*)/:code', newScan);
 app.get('/:id([0-9]*)/:code', newScan);
 app.get('/:id([0-9]*)', newScan);
 
@@ -282,14 +283,17 @@ function newScan(req, res, next) {
         return;
     }
 
+    var note=req.body.note;
+
     httpHeaders(res);
     try {
         // Name the connection after the host:
         connectionString.options.appName=req.headers.host;
 
-        sqlQuery(connectionString, 'EXECUTE Scan.New_Scan @ID=@ID, @ReferenceCode=@ReferenceCode;',
+        sqlQuery(connectionString, 'EXECUTE Scan.New_Scan @ID=@ID, @ReferenceCode=@ReferenceCode, @Note=@Note;',
             [   { "name": 'ID', "type": Types.BigInt, "value": parseInt(req.params.id) },
-                { "name": 'ReferenceCode', "type": Types.VarChar, "value": referenceCode }],
+                { "name": 'ReferenceCode', "type": Types.VarChar, "value": referenceCode },
+                { "name": 'Note', "type": Types.NVarChar, "value": note }],
 
             async function(recordset) {
                 if (recordset.length==1) {
