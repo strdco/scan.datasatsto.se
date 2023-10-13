@@ -56,7 +56,7 @@ Here's how the scanning flow works.
 
 ![Sample Mailchimp integration](https://raw.githubusercontent.com/strdco/scan.datasatsto.se/boss/Documentation/scanning-flow.png)
 
-### With cookie-enabled terminal (normal workflow):
+### With cookie-enabled terminal:
 
 * An exhibitor will first go to `/setup` to create and store an exhibitor code. This code is stored as a cookie
   on the browser, so the process needs to be completed for each terminal.
@@ -71,6 +71,7 @@ and it does not inherit persistent cookies from Safari, so this alternate workfl
 * The exhibitor scans the QR code, which loads `/123456789`.
 * Because the web server does not detect a cookie, it will present the user with a list of codes.
 * When the user clicks one of the codes, the browser loads `/123456789/exhibitorcode`, which completes the scan.
+* If the user long-presses an exhibitor code, they are given the option to add a custom note to the scan.
 
 ## Add a new event
 
