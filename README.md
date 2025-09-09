@@ -25,49 +25,56 @@ field by vendors.
 The solution does not use passwords, with the exception of the EventSecret, which the event owner will need to
 extract reporting data if they don't have database access.
 
-# Setting up the Azure Web App
+# Setup
 
-- Create a new Azure Web App
-  - These instructions are for a Linux-type web app, but they should work with Windows
-- Enviroment variables (_only on Linux, not on Windows_)
-  - Add an environment variable: `PORT`=`8080`
+You'll need:
+- A web server that runs Node.js, for example IIS or Azure WebApps (recommended).
+- A SQL Server instance, any edition or capacity.
+
+## Setting up the Azure WebApp
+
+- Create a new Azure WebApp
 - Configuration
   - FTP Basic Auth -> off
   - FTP state -> Disabled
   - HTTP version -> 2.0
-- Add a startup command:
-
-```
-npm start
-```
+  - Runtime stack: Node, version 22 LTS
 
 - Deployment Center -> New/Settings
   - Source: Github
   - Select your organization and branch
-  - Build Provider: App Service Build Service
-  - Runtime stack: Node, version 22-lts
+  - Build Provider: App Service Build Service (**important**)
 - Synchronize the git repo either automatically, or by clicking the "Sync" button. This may take a couple of minutes.
 
-**Important**: Make sure the Build Provider is correctly set. Using the default will break the build for reasons I don't understand.
+## Additional steps for Azure WebApps on Linux
 
-# Setup
+- Add an environment variable: `PORT`, set it to `8080`
+- Add a startup command:
+```
+npm start
+```
+- The Github repository does not consistently deploy changes automatically on Linux WebApps, in my experience. If you've updated the repo, make sure to check if it was deployed, and if it's stuck in "Pending", you can click the "Sync" button to get it going.
 
-You'll need:
-- A web server that runs NodeJS, for example IIS or Azure WebApps (recommended).
-- A SQL Server instance, any edition.
+## Other web server setups (not Azure WebApps)
+
+- Deploy the Git repository in the web root.
+- You may have to use npm to install all of the dependencies.
+
+# Database setup
 
 To set up:
-- Deploy the Git repository in the web root.
-- You may have to use npm to install all of the dependencies. An Azure Web App does this for you.
-- Run the database deployment script in a blank SQL Server database. The entire solution runs in its own
-  schema, so it will probably play nice with other apps if you need to.
+- Run the database deployment script in a SQL Server database. The entire solution runs in its own
+  schema, "Scan", so it should play nice with other apps if you need to.
 - Create a user to the SQL Server database. It can be a contained user (without login) if you want.
-- GRANT EXECUTE ON SCHEMA::Scan TO {database user};
-- Set up environment variables for the web app
+- `GRANT EXECUTE ON SCHEMA::Scan TO {database user};`
+
+**Note** Do _not_ include the login or database user in any other roles. Apply the principle of least privilege.
+
+# Set up environment variables for the web app
 
 Environment variables:
 
-- cookieSecret: Used to encrypt cookies. Not required, but recommended.
+- cookieSecret: Used to encrypt cookies. (_Not required, but recommended_)
 - dbserver: Fully qualified name of the database instance
 - dbname: Database name
 - dblogin: Login name
@@ -106,7 +113,7 @@ Not supported in the API.
 EXECUTE Scan.New_Event @Event;
 ```
 
-The stored procedure returns an "EventSecret", which acts like a password to access event data.
+The stored procedure returns an "EventSecret", which acts like an API key or password, used to access event data. Store this event secret if you don't have access to the production database.
 
 ## Add a new identity (attendee)
 
@@ -119,13 +126,43 @@ not in a sequential or otherwise predictable manner, but you can opt to set an I
 This could be useful if you want to integrate with another system and want to inherit the
 ID from that data source.
 
-Return value:
+Example output:
 ```
 { "id":"19380729426",
   "url":"https://www.example.com/19380729426",
-  "imgsrc":"https://www.example.com/eventcode/19380729426.png",
+  "imgsrc":"https://www.example.com/event_code/19380729426.png",
   "data":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJ..."}
 ```
+
+- The "imgsrc" URL is persisted, and can be embedded in other solutions, like confirmation emails to attendees, etc.
+- The "data" object is a Base64-encoded QR code of the URL, which allows for embedding in HTML documents or emails.
+
+## Bulk-add identities (attendees), and/or setting attributes
+
+Currently only available in the database, you can store the names, titles and contact info of your attendees in the database if you want. This information is encrypted by a key that you can choose.
+
+```
+EXECUTE Scan.Update_Identities
+    @EventSecret='{secret}',
+    @EncryptionKey='',
+    @Identities_blob=N'[
+        {"id": 1000012345, "name": "Name goes here", "description": "This is a demo"},
+        {"id": 1000012346, "name": "Another name"}
+    ]';
+```
+
+Valid attributes for the JSON blob are:
+- id (**required**)
+- name (200 characters)
+- description (400 characters)
+- jobTitle (150 characters)
+- phone (150 characters)
+- email (150 characters)
+- location (150 characters)
+
+String lenghts for these attributes are approximate. They may vary with unicode characters, and the encryption adds some overhead.
+
+If you do not specify the `@EncryptionKey` parameter, a blank string is used as your key by default. A blank string is required in order to be able to see the name in clear text using the [random scan](#view-one-random-scan) feature.
 
 ## Scan a code
 
@@ -170,7 +207,7 @@ the exhibitor code in the "code" parameter.
 Returns a JSON report of all identities, whether scanned or not. If the identity was
 not scanned, the "Scanned" property is blank.
 
-Example:
+Example output:
 ```
 [{"ID":"19380729426","Scanned":null,"Code":null},
  {"ID":"17560301726","Scanned":"2021-09-27T18:12:23.509Z","Code":null},
@@ -191,8 +228,23 @@ Example:
 
 `GET /random/{secret}`
 
-Returns a single, random scan. If the vendor code is specified, the scan is chosen only
-from that vendor's scans.
+Returns a single, random scan.
+
+- If the vendor code is specified, the scan is chosen only from that vendor's scans.
+- If the attendee record includes a name, and the encryption key is a blank string, the name is also returned in the record.
+
+Example output:
+
+```
+[
+  {
+    "ID": "15025612099",
+    "Scanned": "2024-05-25T07:06:28.111Z",
+    "Code": "(Registration)",
+    "Name": “Attendee name goes here"
+  }
+]
+```
 
 ## Expire
 
